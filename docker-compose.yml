@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres
+    container_name: db
+    restart: always 
+    ports:
+      - 5433:5432
+    env_file:
+      - ./condominers-backend/.env.development
+    volumes:
+      - pg:/var/lib/postgresql/data 
+      
+  node_app:
+    container_name: node_app
+    build: ./condominers-backend
+    ports:
+      - 5000:5000
+    depends_on:
+      - db 
+    env_file:
+      - ./condominers-backend/.env.development
+
+  app_react:
+    build: ./condominers-frontend
+    container_name: app_react
+    volumes:
+      - build_react:/var/www/html
+    depends_on:
+      - node_app
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - 80:80
+    volumes:
+      - build_react:/var/www/html
+    depends_on:
+      - app_react
+      - node_app
+      - db
+
+volumes:  
+  build_react:
+  pg:
