@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Building {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(100)
+  Address      Address        @relation(fields: [addressId], references: [id])
+  addressId    Int            @unique
+  Owner        User           @relation(fields: [userId], references: [id])
+  userId       Int            @unique
+  Apartament   Apartament[]
+  ParkingLot   ParkingLot[]
+  LeisureSpace LeisureSpace[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Address {
+  id         Int       @id @default(autoincrement())
+  street     String    @db.VarChar(100)
+  number     String    @db.VarChar(10)
+  district   String    @db.VarChar(100)
+  complement String    @db.VarChar(100)
+  city       String    @db.VarChar(100)
+  Building   Building?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(100)
+  email             String              @unique @db.Text
+  password          String              @db.Text
+  role              Role
+  Apartament        Apartament?         @relation(fields: [apartamentId], references: [id])
+  apartamentId      Int?
+  ParkingLot        ParkingLot?
+  OwnerToken        OwnerToken?
+  Report            Report[]
+  RentSpace         RentSpace[]
+  MaintenanceRequest MaintenanceRequest[]
+  Building          Building?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  OWNER
+  RESIDENT
+}
+
+model Apartament {
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(20)
+  bedrooms_amount   Int
+  bathrooms_amount  Int
+  suits_amount      Int
+  User              User[]
+  MaintenanceRequest MaintenanceRequest[]
+  Building          Building            @relation(fields: [buildingId], references: [id])
+  buildingId        Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ParkingLot {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(20)
+  User       User?    @relation(fields: [userId], references: [id])
+  userId     Int?     @unique
+  Building   Building @relation(fields: [buildingId], references: [id])
+  buildingId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OwnerToken {
+  id     Int    @id @default(autoincrement())
+  token  String @db.Text
+  User   User   @relation(fields: [userId], references: [id])
+  userId Int    @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Report {
+  id          Int     @id @default(autoincrement())
+  description String  @db.Text
+  User        User    @relation(fields: [userId], references: [id])
+  userId      Int
+  solved      Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LeisureSpace {
+  id         Int         @id @default(autoincrement())
+  name       String      @db.VarChar(100)
+  daily_rent Int
+  capacity   Int
+  RentSpace  RentSpace[]
+  Building   Building    @relation(fields: [buildingId], references: [id])
+  buildingId Int
+  image_url String 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RentSpace {
+  id             Int          @id @default(autoincrement())
+  day_rent       DateTime     @db.Timestamp()
+  User           User         @relation(fields: [userId], references: [id])
+  userId         Int
+  LeisureSpace   LeisureSpace @relation(fields: [leisureSpaceId], references: [id])
+  leisureSpaceId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MaintenanceRequest {
+  id           Int        @id @default(autoincrement())
+  description  String     @db.Text
+  solved       Boolean    @default(false)
+  User         User       @relation(fields: [userId], references: [id])
+  userId       Int
+  Apartament   Apartament @relation(fields: [apartamentId], references: [id])
+  apartamentId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
